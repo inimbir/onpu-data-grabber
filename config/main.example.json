@@ -1,0 +1,9 @@
+{
+  "twitterConsumerKey": "994187454394589184",
+  "twitterConsumerSecret": "994187454394589184",
+  "twitterAccessToken": "994187454394Eti1",
+  "twitterAccessSecret": "dhujN8u",
+  "ampqUri": "amqp://user:pass@my.cloudamqp.com/queue",
+  "mongoUri": "mongodb://user:password@serv.name/smth",
+  "omdbUri": " http://www.omdbapi.com/?apikey=wdsddsdsa"
+}
