@@ -7,6 +7,10 @@ import (
 	"net/http"
 )
 
+type Omdb struct {
+	uri string
+}
+
 type omdbResponse struct {
 	Search []struct {
 		Title  string `json:"Title" binding:"required"`
@@ -19,10 +23,10 @@ type omdbResponse struct {
 	Response        bool  `json:"created" Response:"required"`
 }
 
-func GetSeriesId(seriesName string) (int64, err error) {
-	log.Println("ur", config.OmdbUri)
-	req, err := http.NewRequest("GET", config.OmdbUri, nil)
-	failOnError(err, "Error when creating request object")
+func (omdb Omdb) GetSeriesId(seriesName string) (int64, err error) {
+	log.Println("ur", omdb.uri)
+	req, err := http.NewRequest("GET", omdb.uri, nil)
+	//failOnError(err, "Error when creating request object")
 
 	q := req.URL.Query()
 	q.Add("s", seriesName)
@@ -33,7 +37,7 @@ func GetSeriesId(seriesName string) (int64, err error) {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	failOnError(err, "Error when sending request to the server")
+	//failOnError(err, "Error when sending request to the server")
 
 	defer resp.Body.Close()
 	resp_body, _ := ioutil.ReadAll(resp.Body)

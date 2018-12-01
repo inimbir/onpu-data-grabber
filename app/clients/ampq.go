@@ -4,8 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"log"
 	"time"
 )
+
+type Ampq struct {
+	uri string
+}
 
 var queueName = "tt3398228"
 
@@ -15,13 +20,18 @@ type RequestMessage struct {
 	CreatedAt int64  `json:"created" binding:"required"`
 }
 
-func SendToQueue(id int64, created string, message string) {
-	conn, err := amqp.Dial(config.AmpqUri)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
+func (omdb Omdb) SendToQueue(id int64, created string, message string) {
+	var err error
+	var conn = &amqp.Connection{}
 
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	if conn, err = amqp.Dial(omdb.uri); err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %s", err)
+	}
+	defer conn.Close()
+	var ch = &amqp.Channel{}
+	if ch, err = conn.Channel(); err != nil {
+		log.Fatalf("Failed to open a channel: %s", err)
+	}
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
@@ -32,7 +42,9 @@ func SendToQueue(id int64, created string, message string) {
 		false,     // no-wait
 		nil,       // arguments
 	)
-	failOnError(err, "Failed to declare a queue")
+	if err != nil {
+		log.Fatalf("Failed to declare to queue: %s", err)
+	}
 
 	layout := "Mon Jan 02 15:04:05 -0700 2006"
 	date := created
@@ -59,5 +71,7 @@ func SendToQueue(id int64, created string, message string) {
 			ContentType: "application/json",
 			Body:        []byte(body),
 		})
-	failOnError(err, "Failed to publish a message")
+	if err != nil {
+		log.Fatalf("Failed to publish a message: %s", err)
+	}
 }
