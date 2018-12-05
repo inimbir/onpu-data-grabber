@@ -46,6 +46,10 @@ func GetTwitter() *Twitter {
 	return twitter.Get()
 }
 
+func GetRabbitMq() *Ampq {
+	return ampq.Get()
+}
+
 //import (
 //	"encoding/json"
 //	"log"

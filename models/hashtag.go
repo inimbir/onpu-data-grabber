@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/dghubble/go-twitter/twitter"
 	"github.com/inimbir/onpu-data-grabber/app/clients"
 )
 
@@ -9,13 +8,8 @@ type HashTag struct {
 	Value string
 }
 
-type Context struct {
-	Value         string
-	Group         string
-	model         HashTag
-	InitialData   []twitter.Tweet
-	ComparedData  []twitter.Tweet
-	ExtractedTags []string
+func NewHashtag() *HashTag {
+	return &HashTag{}
 }
 
 var hashTagsChainOfResponsibilities = &IsValidHandler{
@@ -23,21 +17,22 @@ var hashTagsChainOfResponsibilities = &IsValidHandler{
 		next: &PrepareDataHandler{
 			next: &CheckSimilarityHandler{
 				next: &ExtractHashtagsHandler{
-					next: &SaveHandler{}}}}}}
+					next: &SaveHashTagDataHandler{}}}}}}
 
-func (tag HashTag) GetHandlers() Handler {
+func (tag HashTag) GetHandlers() HashTagHandler {
 	return hashTagsChainOfResponsibilities
 }
 
 func (tag HashTag) Exists() bool {
+	//@todo
 	//return clients.GetMongoDb().Exists(tag)
 	return true
 }
 
-//func (tag HashTag) Update() (bool, error) {
+//func (tag Group) Update() (bool, error) {
 //	return clients.GetMongoDb().Update(tag)
 //}
 
 func (tag HashTag) GetCriterias(group string) (criterias []string, err error) {
-	return clients.GetMongoDb().GetHashTagsByGroup(group, 0)
+	return clients.GetMongoDb().GetHashTagsByGroup(group, clients.ConfirmedTweets)
 }

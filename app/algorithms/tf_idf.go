@@ -20,7 +20,7 @@ type TFIDF struct {
 }
 
 // New new model with default
-func New() *TFIDF {
+func NewTfIdf() *TFIDF {
 	return &TFIDF{
 		docIndex:  make(map[string]int),
 		termFreqs: make([]map[string]int, 0),

@@ -2,12 +2,11 @@ package algorithms
 
 import (
 	"bytes"
-	"fmt"
 	"golang.org/x/text/unicode/norm"
-	"log"
 	"math"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type Similarity struct {
@@ -15,31 +14,39 @@ type Similarity struct {
 	tfIdf     *TFIDF
 }
 
+var (
+	instance *Similarity
+	once     sync.Once
+)
+
+func Get() *Similarity {
+	once.Do(func() {
+		instance = &Similarity{}
+		instance.tfIdf = NewTfIdf()
+		instance.initStopWords()
+	})
+	return instance
+}
+
 const REGEX = `[\s\p{Zs}]{2,}`
 const ImportantWordWeight = 0.2
 
 func (s Similarity) GetCosineSimilarity(tags []string, initialDataSet []string, comparedDataSet []string) (similarity float64) {
-	s.initStopWords()
-	s.tfIdf = New()
-
 	initialString := strings.Join(initialDataSet, " ")
 	comparedString := strings.Join(comparedDataSet, " ")
 
 	s.tfIdf.AddDocs(initialString, comparedString)
-	s.initStopWords()
-
-	log.Println("len initialString before : ", len(initialString))
+	//
+	//log.Println("len initialString before : ", len(initialString))
 	initialString = s.normalize(initialString)
-	log.Println("len initialString after : ", len(initialString))
+	//log.Println("len initialString after : ", len(initialString))
 
-	log.Println("len comparedString before : ", len(comparedString))
+	//log.Println("len comparedString before : ", len(comparedString))
 	comparedString = s.normalize(comparedString)
-	log.Println("len comparedString after : ", len(comparedString))
+	//log.Println("len comparedString after : ", len(comparedString))
 
 	//print("Test entity 1: ", initialString);
 	//print("Test entity 2: ", comparedString)
-
-	s.initStopWords()
 
 	s.tfIdf.AddDocs(initialString, comparedString)
 	initialStringWeights := s.tfIdf.Cal(initialString)
@@ -49,13 +56,13 @@ func (s Similarity) GetCosineSimilarity(tags []string, initialDataSet []string, 
 	initialStringWeights = s.injectMajorWeight(initialStringWeights, importantEntries)
 	comparedStringWeights = s.injectMajorWeight(comparedStringWeights, importantEntries)
 
-	print("Entity 1 values with weight: ", fmt.Sprintf("weight of %s is %+v.\n", initialString, initialStringWeights))
-	log.Println("\n\n")
-	print("Entity 2 values with weight: ", fmt.Sprintf("weight of %s is %+v.\n", comparedString, comparedStringWeights))
+	//print("Entity 1 values with weight: ", fmt.Sprintf("weight of %s is %+v.\n", initialString, initialStringWeights))
+	//log.Println("\n\n")
+	//print("Entity 2 values with weight: ", fmt.Sprintf("weight of %s is %+v.\n", comparedString, comparedStringWeights))
 
 	similarity = s.cosine(initialStringWeights, comparedStringWeights)
 
-	print("cosine similarity: ", fmt.Sprintf("%f\n", similarity))
+	//print("cosine similarity: ", fmt.Sprintf("%f\n", similarity))
 
 	return
 }
@@ -103,6 +110,7 @@ func (s Similarity) prepareTagsEntries(tags []string) (entries []string) {
 }
 
 func (s Similarity) injectMajorWeight(weights map[string]float64, tags []string) map[string]float64 {
+	tags = append(tags, "series", "spnfamily", "spnfamiiy")
 	for word := range weights {
 		for _, tag := range tags {
 			if word == tag {
@@ -139,6 +147,6 @@ func (s Similarity) cosine(initial map[string]float64, compared map[string]float
 		return 0
 	}
 
-	return product / (math.Sqrt(squareSumA) * math.Sqrt(squareSumB))
-	//return 0.5 + 0.5*(product / (math.Sqrt(squareSumA) * math.Sqrt(squareSumB)))
+	//return product / (math.Sqrt(squareSumA) * math.Sqrt(squareSumB))
+	return 0.5 + 0.5*(product/(math.Sqrt(squareSumA)*math.Sqrt(squareSumB)))
 }

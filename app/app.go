@@ -13,6 +13,7 @@ type Context struct {
 }
 
 const (
+	ApplicationEnv            = "report"
 	ApplicationName           = "onpu-data-grabber"
 	ApplicationConfigFilePath = "config/main.json"
 )
